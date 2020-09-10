@@ -1,0 +1,13 @@
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.7.3
+  - mpi4py=3.0.3
+  - pip
+  - pip:
+    - gym3==0.3.3
+    - procgen==0.10.4
+    - torch==1.4.0
+    - pandas==1.1.1
+    - matplotlib==3.1.1
