@@ -59,7 +59,7 @@ python -m phasic_policy_gradient.graph --experiment_name e_aux
 PPG, varying N_pi (results/n-pi-N):
 
 ```
-mpiexec -np 4 python -m phasic_policy_gradient.train --n_epoch_pi N
+mpiexec -np 4 python -m phasic_policy_gradient.train --n_pi N
 python -m phasic_policy_gradient.graph --experiment_name n_pi
 ```
 

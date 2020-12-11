@@ -145,8 +145,8 @@ def learn(
     ic_per_step = venv.num * comm.size * nstep
 
     opt_keys = (
-        ["pi", "vf"] if (n_epoch_pi != n_epoch_pi) else ["pi"]
-    )  # use separate optimizers when n_epoch_pi != nepoch
+        ["pi", "vf"] if (n_epoch_pi != n_epoch_vf) else ["pi"]
+    )  # use separate optimizers when n_epoch_pi != n_epoch_vf
     params = list(model.parameters())
     opts = learn_state.get("opts") or {
         k: th.optim.Adam(params, lr=lr)
@@ -220,14 +220,14 @@ def learn(
             seg_buf.append(tree_map(lambda x: x.cpu(), seg))
 
         with logger.profile_kv("optimization"):
-            # when n_epoch_pi is specified (and n_epoch_pi != nepoch), we perform separate policy and vf epochs with separate optimizers
-            if n_epoch_pi != n_epoch_pi:
+            # when n_epoch_pi != n_epoch_vf, we perform separate policy and vf epochs with separate optimizers
+            if n_epoch_pi != n_epoch_vf:
                 minibatch_optimize(
                     train_vf,
                     {k: seg[k] for k in INPUT_KEYS},
                     nminibatch=nminibatch,
                     comm=comm,
-                    nepoch=n_epoch_pi,
+                    nepoch=n_epoch_vf,
                     verbose=verbose,
                 )
 
