@@ -472,6 +472,7 @@ def configure(
     dir: "(str|None) Local directory to write to" = None,
     format_strs: "(str|None) list of formats" = None,
     comm: "(MPI communicator | None) average numerical stats over comm" = None,
+    suffix: "(str) suffix of the file to write to" = None,
 ):
     if dir is None:
         if os.getenv("OPENAI_LOGDIR"):

@@ -8,6 +8,8 @@ from .envs import get_venv
 
 def train_fn(env_name="coinrun",
     distribution_mode="hard",
+    start_level=0,
+    num_levels=500,
     arch="dual",  # 'shared', 'detach', or 'dual'
     # 'shared' = shared policy and value networks
     # 'dual' = separate policy and value networks
@@ -38,7 +40,10 @@ def train_fn(env_name="coinrun",
         format_strs = ['csv', 'stdout'] if comm.Get_rank() == 0 else []
         logger.configure(comm=comm, dir=log_dir, format_strs=format_strs)
 
-    venv = get_venv(num_envs=num_envs, env_name=env_name, distribution_mode=distribution_mode)
+    venv = get_venv(num_envs=num_envs, env_name=env_name, distribution_mode=distribution_mode, \
+        start_level=start_level, num_levels=num_levels)
+    eval_venv = get_venv(num_envs=num_envs, env_name=env_name, distribution_mode=distribution_mode, \
+        start_level=0, num_levels=0)
 
     enc_fn = lambda obtype: ImpalaEncoder(
         obtype.shape,
@@ -55,6 +60,7 @@ def train_fn(env_name="coinrun",
 
     ppg.learn(
         venv=venv,
+        eval_venv=eval_venv,
         model=model,
         interacts_total=interacts_total,
         ppo_hps=dict(
@@ -79,6 +85,8 @@ def train_fn(env_name="coinrun",
 def main():
     parser = argparse.ArgumentParser(description='Process PPG training arguments.')
     parser.add_argument('--env_name', type=str, default='coinrun')
+    parser.add_argument('--start_level', type=int, default=0)
+    parser.add_argument('--num_levels', type=int, default=200)
     parser.add_argument('--num_envs', type=int, default=64)
     parser.add_argument('--n_epoch_pi', type=int, default=1)
     parser.add_argument('--n_epoch_vf', type=int, default=1)
@@ -94,6 +102,8 @@ def main():
 
     train_fn(
         env_name=args.env_name,
+        start_level=args.start_level,
+        num_levels=args.num_levels,
         num_envs=args.num_envs,
         n_epoch_pi=args.n_epoch_pi,
         n_epoch_vf=args.n_epoch_vf,
