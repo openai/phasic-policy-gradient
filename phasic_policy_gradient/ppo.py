@@ -114,7 +114,8 @@ def compute_losses(
 
 def learn(
     *,
-    venv: "(VecEnv) vectorized environment",
+    venv: "(VecEnv) vectorized train environment",
+    eval_venv: "(VecEnv) vectorized test environment",
     model: "(ppo.PpoModel)",
     interacts_total: "(float) total timesteps of interaction" = float("inf"),
     nstep: "(int) number of serial timesteps" = 256,
@@ -199,6 +200,14 @@ def learn(
         keep_non_rolling=log_save_opts.get("log_new_eps", False),
     )
 
+    eval_roller = learn_state.get("eval_roller") or Roller(
+        act_fn=model.act,
+        venv=eval_venv,
+        initial_state=model.initial_state(venv.num),
+        keep_buf=100,
+        keep_non_rolling=log_save_opts.get("log_new_eps", False),
+    )
+
     lsh = learn_state.get("lsh") or LogSaveHelper(
         ic_per_step=ic_per_step, model=model, comm=comm, **log_save_opts
     )
@@ -212,6 +221,10 @@ def learn(
     while curr_interact_count < interacts_total and not callback_exit:
         seg = roller.multi_step(nstep)
         lsh.gather_roller_stats(roller)
+
+        eval_seg = eval_roller.multi_step(nstep)
+        lsh.gather_eval_roller_stats(eval_roller)
+
         if rnorm:
             seg["reward"] = reward_normalizer(seg["reward"], seg["first"])
         compute_advantage(model, seg, γ, λ, comm=comm)
@@ -257,6 +270,7 @@ def learn(
     return dict(
         opts=opts,
         roller=roller,
+        eval_roller=eval_roller,
         lsh=lsh,
         reward_normalizer=reward_normalizer,
         curr_interact_count=curr_interact_count,

@@ -218,6 +218,7 @@ def learn(
     *,
     model,
     venv,
+    eval_venv,
     ppo_hps,
     aux_lr,
     aux_mbsize,
@@ -245,6 +246,7 @@ def learn(
         # Policy phase
         ppo_state = ppo.learn(
             venv=venv,
+            eval_venv=eval_venv,
             model=model,
             learn_state=ppo_state,
             callbacks=[
